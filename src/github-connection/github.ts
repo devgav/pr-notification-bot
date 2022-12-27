@@ -1,11 +1,10 @@
 import {Octokit} from "octokit";
 import {Result} from "./interfaces/interfaces";
-import * as dotenv from 'dotenv'
+import dotenv from 'dotenv'
 dotenv.config();
 
-
 const octokit: Octokit = new Octokit({
-    auth: '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'
+    auth: process.env.GITHUB_API_KEY
 });
 
 async function retrievePullRequests(repo: string): Promise<Promise<Array<Result>> | undefined> {
@@ -30,6 +29,7 @@ function main() {
         // Retrieve PR's from 
         const list_of_ui_prs = await retrievePullRequests("uh-groupings-ui");
         const list_of_api_prs = await retrievePullRequests("uh-groupings-api");
+        console.log(list_of_ui_prs);
         if (list_of_api_prs != undefined) {
             const merged_api_prs: Array<Result> = list_of_api_prs.filter((pr) => (pr.merged_date_time != null));
             merged_api_prs.forEach(() => { 
