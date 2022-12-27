@@ -1,45 +1,34 @@
 import {Octokit} from "octokit";
 import {Result} from "./interfaces/interfaces";
 import dotenv from 'dotenv'
+
 dotenv.config();
 
 const octokit: Octokit = new Octokit({
     auth: process.env.GITHUB_API_KEY
 });
 
-async function retrievePullRequests(repo: string): Promise<Promise<Array<Result>> | undefined> {
+const OWNER_GROUPINGS = "uhawaii-system-its-ti-iam";
+const REPO_GROUPINGS = 'uh-groupings-ui';
+const OWNER = "devgav"; 
+const REPO = "stock-trading-bot";
+async function retrievePullRequests(repo: string, owner: string): Promise<Promise<Array<Result>> | undefined> {
     try {
         const pull_requests = await octokit.request("GET /repos/{owner}/{repo}/pulls", {
-            owner: "uhawaii-system-its-ti-iam",
+            owner,
             repo,
         });
         return pull_requests.data.map(pr => ({
             title: pr.title,
             author_name: pr.user!.login,
             merged_date_time: pr.merged_at,
-            
+            project_version: pr.base.ref,
+            url: pr.html_url,
+            repo_name: pr.head.repo.name,
         }));
     } catch (e) {
         console.log(`Error finding UI pull requests`, e);
     }
 }
 
-function main() {
-    setInterval(async () => {
-        // Retrieve PR's from 
-        const list_of_ui_prs = await retrievePullRequests("uh-groupings-ui");
-        const list_of_api_prs = await retrievePullRequests("uh-groupings-api");
-        console.log(list_of_ui_prs);
-        if (list_of_api_prs != undefined) {
-            const merged_api_prs: Array<Result> = list_of_api_prs.filter((pr) => (pr.merged_date_time != null));
-            merged_api_prs.forEach(() => { 
-                
-            })
-        }
-        if (list_of_ui_prs != undefined) {
-            const merged_ui_prs: Array<Result> = list_of_ui_prs.filter((pr) => (pr.merged_date_time != null));
-        }
-    }, 500);
-}
-
-await main();
+console.log(await retrievePullRequests(REPO, OWNER));
