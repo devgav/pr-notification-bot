@@ -1,7 +1,8 @@
 import {Octokit} from "octokit";
-import {PRData, Result} from "./interfaces/interfaces";
-import NodeCache from "node-cache";
-import dotenv from 'dotenv'
+import {PRData} from "../interfaces/interfaces";
+import dotenv from 'dotenv';
+import Cache from "../cache/cache.js";
+import {PRInformation} from "../types/types";
 
 dotenv.config();
 
@@ -10,7 +11,6 @@ const REPO_GROUPINGS = 'uh-groupings-ui';
 const OWNER = "devgav";
 const REPO = "stock-trading-bot";
 
-const cache = new NodeCache();
 const octokit: Octokit = new Octokit({
     auth: process.env.GITHUB_API_KEY
 });
@@ -21,7 +21,7 @@ const octokit: Octokit = new Octokit({
  * @param owner - the owner of the repo or organization if there is no owner
  * @return  { title: string, author_name: string, merged_date_time: date, project_version: string, url: string, repo_name: string }
  */
-async function retrievePullRequests(repo: string, owner: string): Promise<Promise<Array<PRData>> | undefined> {
+async function retrievePullRequests(repo: string, owner: string): Promise<PRInformation> {
     try {
         const pull_requests = await octokit.request("GET /repos/{owner}/{repo}/pulls", {
             owner,
@@ -40,18 +40,13 @@ async function retrievePullRequests(repo: string, owner: string): Promise<Promis
     }
 }
 
-/**
- * Caches the given result of a given pull request to node-cache
- * The cached result will be in the form of { key: string, val: obj }
- */
-async function cachePullRequests(requests: Array<PRData>): Promise<void> {
-    try {
-        const cacheItem = requests.map((requestItem, index) => ({ key: index, val: requestItem }));
-        cache.mset(cacheItem);
-    } catch (e) {
-        console.error(`Error: `, e);
-    }
-}
-
-
-console.log(await retrievePullRequests(REPO, OWNER));
+const cache = new Cache();
+setInterval(async () => {
+    const list_of_prs = await retrievePullRequests(REPO, OWNER);
+    await cache.cachePullRequests(list_of_prs, REPO);
+    const retrievedData = await cache.retrieveCachedPullRequests(REPO);
+    const newPrs = await retrievePullRequests(REPO, OWNER);
+    const mergedPullRequests = await cache.retrieveMergedPullRequests(newPrs, REPO);
+    console.log(`The retrieved data: `, retrievedData);
+    console.log(`The merged pull request data: `, mergedPullRequests);
+}, 1000);
