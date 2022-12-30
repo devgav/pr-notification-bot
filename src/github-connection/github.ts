@@ -1,8 +1,8 @@
 import {Octokit} from "octokit";
-import {PRData} from "../interfaces/interfaces";
 import dotenv from 'dotenv';
 import Cache from "../cache/cache.js";
 import {PRInformation} from "../types/types";
+import _ from "underscore";
 
 dotenv.config();
 
@@ -22,31 +22,130 @@ const octokit: Octokit = new Octokit({
  * @return  { title: string, author_name: string, merged_date_time: date, project_version: string, url: string, repo_name: string }
  */
 async function retrievePullRequests(repo: string, owner: string): Promise<PRInformation> {
-    try {
-        const pull_requests = await octokit.request("GET /repos/{owner}/{repo}/pulls", {
-            owner,
-            repo,
-        });
-        return pull_requests.data.map(pr => ({
-            title: pr.title,
-            author_name: pr.user!.login,
-            merged_date_time: pr.merged_at,
-            project_version: pr.base.ref,
-            url: pr.html_url,
-            repo_name: pr.head.repo.name,
-        }));
-    } catch (e) {
-        console.error(`Error finding UI pull requests`, e);
-    }
+    return new Promise(async (resolve, reject) => {
+        try {
+            const pull_requests = await octokit.request("GET /repos/{owner}/{repo}/pulls", {
+                owner,
+                repo,
+            });
+            resolve(pull_requests.data.map(pr => ({
+                title: pr.title,
+                author_name: pr.user!.login,
+                merged_date_time: pr.merged_at,
+                project_version: pr.base.ref,
+                url: pr.html_url,
+                repo_name: pr.head.repo.name,
+            })));
+        } catch (e) {
+            reject(e);
+        }
+    });
 }
 
-const cache = new Cache();
-setInterval(async () => {
-    const list_of_prs = await retrievePullRequests(REPO, OWNER);
-    await cache.cachePullRequests(list_of_prs, REPO);
-    const retrievedData = await cache.retrieveCachedPullRequests(REPO);
-    const newPrs = await retrievePullRequests(REPO, OWNER);
-    const mergedPullRequests = await cache.retrieveMergedPullRequests(newPrs, REPO);
-    console.log(`The retrieved data: `, retrievedData);
-    console.log(`The merged pull request data: `, mergedPullRequests);
-}, 1000);
+// const cache = new Cache();
+// setInterval(async () => {
+//     // Retrieve the list of prs
+//     const list_of_prs = await retrievePullRequests(REPO, OWNER);
+//     // Cache prs
+//     await cache.cachePullRequests(list_of_prs, REPO);
+//     // Retrieve the cached prs
+//     const retrievedData = await cache.retrieveCachedPullRequests(REPO);
+//     console.log(`The retrieved data: `, retrievedData);
+//     setTimeout(() => {
+//         console.log()}, 5000);
+//     const newPrs = await retrievePullRequests(REPO, OWNER);
+//     const mergedPullRequests = await cache.retrieveMergedPullRequests(newPrs, REPO);
+//     console.log(`The merged pull request data: `, mergedPullRequests);
+// }, 5000);
+
+// TODO: FIX THIS ERROR 
+/**
+ * The retrieved data:  [
+ *   {                                                           
+ *     title: 'test',                                            
+ *     author_name: 'devgav',                                    
+ *     merged_date_time: null,                                   
+ *     project_version: 'main',                                  
+ *     url: 'https://github.com/devgav/stock-trading-bot/pull/7',
+ *     repo_name: 'stock-trading-bot'                            
+ *   },
+ *   {
+ *     title: 'Add those lines back',
+ *     author_name: 'devgav',
+ *     merged_date_time: null,
+ *     project_version: 'main',
+ *     url: 'https://github.com/devgav/stock-trading-bot/pull/6',
+ *     repo_name: 'stock-trading-bot'
+ *   }
+ * ]
+ * The merged pull request data:  [
+ *   {
+ *     title: 'test',
+ *     author_name: 'devgav',
+ *     merged_date_time: null,
+ *     project_version: 'main',
+ *     url: 'https://github.com/devgav/stock-trading-bot/pull/7',
+ *     repo_name: 'stock-trading-bot'
+ *   },
+ *   {
+ *     title: 'Add those lines back',
+ *     author_name: 'devgav',
+ *     merged_date_time: null,
+ *     project_version: 'main',
+ *     url: 'https://github.com/devgav/stock-trading-bot/pull/6',
+ *     repo_name: 'stock-trading-bot'
+ *   }
+ * ]
+ */
+
+const retrievedArray = [
+    {
+        title: 'test',
+        author_name: 'devgav',
+        merged_date_time: null,
+        project_version: 'main',
+        url: 'https://github.com/devgav/stock-trading-bot/pull/7',
+        repo_name: 'stock-trading-bot'
+    },
+    {
+        title: 'Add those lines back',
+        author_name: 'devgav',
+        merged_date_time: null,
+        project_version: 'main',
+        url: 'https://github.com/devgav/stock-trading-bot/pull/6',
+        repo_name: 'stock-trading-bot'
+    }
+]
+
+const mergeArray = [
+    {
+        title: 'test',
+        author_name: 'devgav',
+        merged_date_time: null,
+        project_version: 'main',
+        url: 'https://github.com/devgav/stock-trading-bot/pull/7',
+        repo_name: 'stock-trading-bot'
+    },
+    // {
+    //     title: 'Add those lines back',
+    //     author_name: 'devgav',
+    //     merged_date_time: null,
+    //     project_version: 'main',
+    //     url: 'https://github.com/devgav/stock-trading-bot/pull/6',
+    //     repo_name: 'stock-trading-bot'
+    // }
+];
+
+const uniqueResultOne = retrievedArray.filter(function(obj) {
+    return !mergeArray.some(function(obj2) {
+        return obj.title == obj2.title;
+    });
+});
+
+const equals = _.isEqual(mergeArray[0], retrievedArray[0]);
+const test = mergeArray[0] == retrievedArray[0];
+console.log(`Filtered Data: `, uniqueResultOne);
+
+
+ 
+
