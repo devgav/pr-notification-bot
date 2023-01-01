@@ -5,4 +5,5 @@ export interface PRData {
     project_version: string,
     url: string,
     repo_name: string,
+    pull_number: number,
 }
