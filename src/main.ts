@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import {RTMClient, WebClient} from "@slack/client";
 import pkg from "@slack/bolt";
+import {Channel, ChannelMembers} from "./interfaces/interfaces";
 
 const { App } = pkg;
 dotenv.config();
@@ -28,33 +29,59 @@ const { client } = app;
  * @param name - name of the channel
  * @return { id: string, name: string } - id of the slack channel and name of the slack channel.
  */
-async function createChannel(name: string) {
-    try {
-        const result = await client.conversations.create({
-            name,
-        });
-        console.log(`Successfully created channel: ${result.channel.name} with channel id ${result.channel.id}`);
-    } catch (error) {
-        console.log(error);
-    }
+async function createChannel(name: string): Promise<Channel> {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result = await client.conversations.create({
+                name,
+            });
+            const channelInformation = {
+                id: result.channel?.id,
+                name: result.channel?.name,
+            }
+            console.log(`Successfully created channel: ${result.channel?.name} with channel id ${result.channel?.id}`);
+            resolve(channelInformation);
+        } catch (error) {
+            reject(error);
+            console.log(error);
+        }
+    });
 }
 
 // retrieve a list of members from a slack channel 
-async function getChannelMembers(channelId: string) {
+async function getChannelMembers(): Promise<Array<ChannelMembers>> {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const results = await client.users.list();
+            let channelMembers: Array<ChannelMembers> = [];
+            if (results?.members && results?.members?.length > 0) {
+                channelMembers = results.members.map((member) => {
+                    const { id, name, is_owner, is_primary_owner, is_bot } = member;
+                    return {
+                        id,
+                        name,
+                        is_owner,
+                        is_primary_owner,
+                        is_bot,
+                    }
+                });
+            }
+            resolve(channelMembers);
+        } catch (e) {
+            reject(e);
+            console.log(e);
+        }
+    });
+}
+
+// add new members to channel.
+async function addMemberToChannel(channel: string, users: string): Promise<void> {
     try {
-        const result = await client.conversations.members({channel: channelId});
-        return result.members as String[];
+        await client.conversations.invite({ channel, users });
     } catch (e) {
         console.log(e);
     }
 }
-
-// add members to channel.
-async function addMembersToChannel(channel: string) {
-    
-}
-// add new members to channel.
-
 /**
  * Send message to a slack channel.
  * 
@@ -72,5 +99,9 @@ async function sendMessage(channel: string, text: string): Promise<void> {
 
 // ask for owner and repo when first getting started, either create web app or keep it with one channel using RTM (https://slack.dev/node-slack-sdk/rtm-api)
 
-await createChannel("pr-notifications");
-await sendMessage('pr-notifications', 'a pr has been merged');
+
+// await getChannelList();
+const users = await getChannelMembers();
+console.log(users);
+// const channel = await createChannel("pr-notifications");
+// await sendMessage('pr-notifications', 'a pr has been merged');

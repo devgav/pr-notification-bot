@@ -7,3 +7,16 @@ export interface PRData {
     repo_name: string,
     pull_number: number,
 }
+
+export interface ChannelMembers {
+    id: string | undefined,
+    name: string | undefined,
+    is_owner: boolean | undefined,
+    is_primary_owner: boolean | undefined,
+    is_bot: boolean | undefined
+}
+
+export interface Channel {
+    id: string | undefined,
+    name: string | undefined,
+}
