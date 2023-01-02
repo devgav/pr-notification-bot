@@ -19,7 +19,7 @@ const octokit: Octokit = new Octokit({
  * @param owner - the owner of the repo or organization if there is no owner
  * @return  { title: string, author_name: string, merged_date_time: date, project_version: string, url: string, repo_name: string }
  */
-async function retrieveMergedPullRequests(repo: string, owner: string): Promise<PRInformation> {
+export async function retrieveMergedPullRequests(repo: string, owner: string): Promise<PRInformation> {
     return new Promise(async (resolve, reject) => {
         try {
             const pull_requests = await octokit.request("GET /repos/{owner}/{repo}/pulls?state=closed&sort=updated&direction=desc&merged=true", {
