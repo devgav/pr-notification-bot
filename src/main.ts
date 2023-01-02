@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import pkg from "@slack/bolt";
-import { listenForPullRequest } from "./slack/slack.js";
+import {getChannelMembers, listenForPullRequest} from "./slack/slack.js";
 
 const { App } = pkg;
 dotenv.config();
@@ -16,6 +16,7 @@ const app = new App({
     const port = 3000;
     await app.start(process.env.PORT || port);
     await listenForPullRequest();
+    await getChannelMembers();
     console.log(`Slack Bolt is running on port ${port}!`);
 })();
 

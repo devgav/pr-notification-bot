@@ -39,7 +39,7 @@ export async function getChannelMembers(): Promise<Array<ChannelMembers>> {
             const results = await client.users.list();
             let channelMembers: Array<ChannelMembers> = [];
             if (results?.members && results?.members?.length > 0) {
-                channelMembers = results.members.map((member: any) => {
+                channelMembers = results.members.map((member: ChannelMembers) => {
                     const { id, name, is_owner, is_primary_owner, is_bot } = member;
                     return {
                         id,
