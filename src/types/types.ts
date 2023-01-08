@@ -1,3 +1,3 @@
-import {PRData} from "../interfaces/interfaces";
+import {Endpoints} from "@octokit/types";
 
-export type PRInformation = Array<PRData> | undefined;
+export type ListPullsResponse = Endpoints["GET /repos/{owner}/{repo}/pulls"]["response"];

@@ -82,30 +82,17 @@ export async function sendMessage(channel: string, text: string): Promise<void> 
 }
 
 export async function listenForPullRequest(time?: string) {
-    const d = '30 * * * * *';
+    const PING_FOR_EVERY_30_SECONDS = '30 * * * * *';
     // Queue every minute
-    const v = '*/1 * * * *'
-    const merged_requests_api = await retrieveMergedPullRequests(REPO_GROUPINGS_UI, OWNER_GROUPINGS);
-    console.log(merged_requests_api)
+    const PING_FOR_EVERY_1_MINUTE = '*/1 * * * *'
 
-    // cron.schedule(d, async () => {
-    //     const currentTime = new Date().toISOString();
-    //     const merged_requests_ui = await retrieveMergedPullRequests(REPO_GROUPINGS_UI, OWNER_GROUPINGS);
-    //     const merged_requests_api = await retrieveMergedPullRequests(REPO_GROUPINGS_API, OWNER_GROUPINGS);
-    //     // console.log(merged_requests_ui);
-    //     // filter the ui and api for if they were queued in the last n seconds
-    //     // if (merged_requests_api && merged_requests_api.length > 0) {
-    //     //     merged_requests_api.filter((api_pr) => (new Date(api_pr.merged_date_time as string).getTime() <= new Date().getTime() ))
-    //     // }
-    //     // if (merged_requests_ui && merged_requests_ui.length > 0) {
-    //     //     // Filter for the date
-    //     //     // Filter for the 
-    //     //     merged_requests_ui.filter((ui_pr) => (new Date(ui_pr.merged_date_time as string).getTime() <= new Date().getTime()))
-    //     // }
-    //     // console.log(merged_requests_ui);
-    //     // combine the ui and api merges together 
-    //     console.log('running every two minutes');
-    // });
+    cron.schedule(PING_FOR_EVERY_30_SECONDS, async () => {
+        const currentTime = new Date().toISOString();
+        const merged_requests_ui = await retrieveMergedPullRequests(REPO_GROUPINGS_UI, OWNER_GROUPINGS);
+        const merged_requests_api = await retrieveMergedPullRequests(REPO_GROUPINGS_API, OWNER_GROUPINGS);
+
+        
+    });
 
     const merged = [];
     

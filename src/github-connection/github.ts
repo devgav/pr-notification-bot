@@ -1,5 +1,6 @@
 import {Octokit} from "octokit";
 import dotenv from 'dotenv';
+import {ListPullsResponse} from "../types/types";
 
 dotenv.config();
 
@@ -27,14 +28,14 @@ function filterByTime(pr: any, date: Date): boolean {
  * @param repo - the repo name that you are accessing
  * @param owner - the owner of the repo or organization if there is no owner
  */
-export async function retrieveMergedPullRequests(repo: string, owner: string): Promise<unknown> {
+export async function retrieveMergedPullRequests(repo: string, owner: string): Promise<ListPullsResponse["data"]> {
     return new Promise(async (resolve, reject) => {
         try {
             // Set the current dates milliseconds and seconds to 0.
             const date = new Date();
             date.setHours(0, 0, 0, 0);
             const test_date = new Date('2023-01-06T10:00:00.000Z');
-            const pull_requests = await octokit.request(`GET /repos/{owner}/{repo}/pulls`, {
+            const pull_requests: ListPullsResponse = await octokit.request(`GET /repos/{owner}/{repo}/pulls`, {
                 owner,
                 repo,
                 state: 'closed',
