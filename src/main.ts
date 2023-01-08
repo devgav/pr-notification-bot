@@ -16,7 +16,6 @@ const app = new App({
     const port = 3000;
     await app.start(process.env.PORT || port);
     await listenForPullRequest();
-    await getChannelMembers();
     console.log(`Slack Bolt is running on port ${port}!`);
 })();
 
