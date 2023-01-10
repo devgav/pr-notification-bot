@@ -27,14 +27,11 @@ function filterByTime(pr: any, date: Date): boolean {
  * Retrieves a list of pull requests
  * @param repo - the repo name that you are accessing
  * @param owner - the owner of the repo or organization if there is no owner
+ * @param date - the day you want to filter for pull requests
  */
-export async function retrieveMergedPullRequests(repo: string, owner: string): Promise<ListPullsResponse["data"]> {
+export async function retrieveMergedPullRequests(repo: string, owner: string, date: Date): Promise<ListPullsResponse["data"]> {
     return new Promise(async (resolve, reject) => {
         try {
-            // Set the current dates milliseconds and seconds to 0.
-            const date = new Date();
-            date.setHours(0, 0, 0, 0);
-            const test_date = new Date('2023-01-06T10:00:00.000Z');
             const pull_requests: ListPullsResponse = await octokit.request(`GET /repos/{owner}/{repo}/pulls`, {
                 owner,
                 repo,
@@ -44,7 +41,7 @@ export async function retrieveMergedPullRequests(repo: string, owner: string): P
                 direction: 'desc',
                 per_page: 10,
             });
-            const octokit_response = pull_requests.data.filter((pr: any) => filterByTime(pr, test_date));
+            const octokit_response = pull_requests.data.filter((pr: any) => filterByTime(pr, date));
             resolve(octokit_response);
         } catch (e) {
             reject(e);

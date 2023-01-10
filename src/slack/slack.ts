@@ -2,6 +2,7 @@ import {Channel, ChannelMembers} from "../interfaces/interfaces";
 import {client} from "../main.js";
 import {retrieveMergedPullRequests} from "../github-connection/github.js";
 import cron from 'node-cron';
+import {ListPullsResponse} from "../types/types";
 
 const OWNER_GROUPINGS = "uhawaii-system-its-ti-iam";
 const REPO_GROUPINGS_UI = 'uh-groupings-ui';
@@ -19,7 +20,7 @@ export async function createChannel(name: string): Promise<Channel> {
             const result = await client.conversations.create({
                 name,
             });
-            const channelInformation = {
+            const channelInformation: Channel = {
                 id: result.channel?.id,
                 name: result.channel?.name,
             }
@@ -81,19 +82,37 @@ export async function sendMessage(channel: string, text: string): Promise<void> 
     }
 }
 
-export async function listenForPullRequest(time?: string) {
-    const PING_FOR_EVERY_30_SECONDS = '30 * * * * *';
-    // Queue every minute
-    const PING_FOR_EVERY_1_MINUTE = '*/1 * * * *'
-
-    cron.schedule(PING_FOR_EVERY_30_SECONDS, async () => {
-        const currentTime = new Date().toISOString();
-        const merged_requests_ui = await retrieveMergedPullRequests(REPO_GROUPINGS_UI, OWNER_GROUPINGS);
-        const merged_requests_api = await retrieveMergedPullRequests(REPO_GROUPINGS_API, OWNER_GROUPINGS);
-
-        
-    });
-
-    const merged = [];
-    
+export async function retrieveDate(): Promise<Date> {
+    return new Promise((resolve, reject) => {
+        try {
+            cron.schedule('0 0 * * *', () => {
+                const date = new Date();
+                date.setHours(0, 0, 0, 0);
+                resolve(date);
+            });
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+/**
+ * Listens for activity on a GitHub repo based on a specific number of times. By default, it will ping the repo every 30 seconds.
+ * 
+ * @param time(optional) - allows the bot to be pinged at a specific time see https://www.npmjs.com/package/node-cron on how to format the date
+ * @param date - the current date
+ */
+export async function listenForPullRequest( date: Date, time?: string): Promise<ListPullsResponse["data"]> {
+    return new Promise((resolve, reject) => {
+        try {
+            const PING_FOR_EVERY_30_SECONDS = '*/30 * * * * *';
+            const PING_TIME = time ? time : PING_FOR_EVERY_30_SECONDS;
+            cron.schedule(PING_TIME, async () => {
+                const merged_requests_ui = await retrieveMergedPullRequests(REPO_GROUPINGS_UI, OWNER_GROUPINGS, date);
+                const merged_requests_api = await retrieveMergedPullRequests(REPO_GROUPINGS_API, OWNER_GROUPINGS, date);
+                resolve([...merged_requests_ui, ...merged_requests_api])
+            });
+        } catch (e) {
+            reject(e);
+        }
+    })
 }
