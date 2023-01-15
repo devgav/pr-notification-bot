@@ -14,7 +14,7 @@ const REPO_GROUPINGS_API = 'uh-groupings-api';
  * @param name - name of the channel
  * @return { id: string, name: string } - id of the slack channel and name of the slack channel.
  */
-export async function createChannel(name: string): Promise<Channel> {
+export function createChannel(name: string): Promise<Channel> {
     return new Promise(async (resolve, reject) => {
         try {
             const result = await client.conversations.create({
@@ -34,7 +34,7 @@ export async function createChannel(name: string): Promise<Channel> {
 }
 
 // retrieve a list of members from a slack channel 
-export async function getChannelMembers(): Promise<Array<ChannelMembers>> {
+export function getChannelMembers(): Promise<Array<ChannelMembers>> {
     return new Promise(async (resolve, reject) => {
         try {
             const results = await client.users.list();
@@ -82,7 +82,7 @@ export async function sendMessage(channel: string, text: string): Promise<void> 
     }
 }
 
-export async function retrieveDate(): Promise<Date> {
+export function retrieveDate(): Promise<Date> {
     return new Promise((resolve, reject) => {
         try {
             cron.schedule('0 0 * * *', () => {
@@ -95,13 +95,14 @@ export async function retrieveDate(): Promise<Date> {
         }
     })
 }
+
 /**
  * Listens for activity on a GitHub repo based on a specific number of times. By default, it will ping the repo every 30 seconds.
  * 
  * @param time(optional) - allows the bot to be pinged at a specific time see https://www.npmjs.com/package/node-cron on how to format the date
  * @param date - the current date
  */
-export async function listenForPullRequest( date: Date, time?: string): Promise<ListPullsResponse["data"]> {
+export function listenForPullRequest( date: Date, time?: string): Promise<ListPullsResponse["data"]> {
     return new Promise((resolve, reject) => {
         try {
             const PING_FOR_EVERY_30_SECONDS = '*/30 * * * * *';

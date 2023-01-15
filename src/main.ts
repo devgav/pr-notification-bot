@@ -43,6 +43,8 @@ const REPO_GROUPINGS_API = 'uh-groupings-api';
     while (true) {
         const data = await listenForPullRequest(test_date);
         let message = '';
+        // Check the history using the oldest  keyword which will chekc the message AFTER the given timestamp
+        // send the messages that aren't in the history
         data.forEach((pull_request) => {
             message = `Merged ${pull_request.html_url} to ${pull_request.number} *${pull_request.head.repo.name} ${pull_request.base.ref}* branch. Please update your branches whenever you are ready for the new changes.`;
         });
