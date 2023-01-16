@@ -11,9 +11,12 @@ export interface Channel {
     name: string | undefined,
 }
 
-export interface ChannelHistory {
-    bot_id: string | undefined,
-    type: string | undefined,
-    text: string | undefined,
-    user: string | undefined,
+export interface Message {
+    bot_id: string,
+    type: string,
+    text: string,
+    user: string,
+    ts: string,
+    app_id: string,
+    team: string
 }

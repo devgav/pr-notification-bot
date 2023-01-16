@@ -94,20 +94,6 @@ export async function sendMessage(channel: string, text: string): Promise<void> 
     }
 }
 
-export function retrieveDate(): Promise<Date> {
-    return new Promise((resolve, reject) => {
-        try {
-            cron.schedule('0 0 * * *', () => {
-                const date = new Date();
-                date.setHours(0, 0, 0, 0);
-                resolve(date);
-            });
-        } catch (e) {
-            reject(e);
-        }
-    })
-}
-
 /**
  * Listens for activity on a GitHub repo based on a specific number of times. By default, it will ping the repo every 30 seconds.
  * 

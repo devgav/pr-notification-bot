@@ -4,11 +4,6 @@ import {ListPullsResponse} from "../types/types";
 
 dotenv.config();
 
-const OWNER_GROUPINGS = "uhawaii-system-its-ti-iam";
-const REPO_GROUPINGS = 'uh-groupings-ui';
-const OWNER = "devgav";
-const REPO = "stock-trading-bot";
-
 const octokit: Octokit = new Octokit({
     auth: process.env.GITHUB_API_KEY
 });

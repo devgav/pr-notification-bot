@@ -1,14 +1,15 @@
 import dotenv from "dotenv";
 import pkg from "@slack/bolt";
-import {retrieveMergedPullRequests} from "./github-connection/github.js";
 import {
     addMemberToChannel,
     createChannel, getChannelHistory,
     getChannelMembers,
     listenForPullRequest,
-    retrieveDate, sendMessage
+    sendMessage
 } from "./slack/slack.js";
-import {ListPullsResponse} from "./types/types";
+// @ts-ignore
+import {ChannelsHistoryResponse} from "@slack/client";
+import {Message} from "./interfaces/interfaces";
 
 const { App } = pkg;
 dotenv.config();
@@ -20,17 +21,33 @@ const app = new App({
     appToken: process.env.APP_LEVEL_TOKEN
 });
 
-const OWNER_GROUPINGS = "uhawaii-system-its-ti-iam";
-const REPO_GROUPINGS_UI = 'uh-groupings-ui';
-const REPO_GROUPINGS_API = 'uh-groupings-api';
+let regex = /https:\/\/github\.com\/[a-zA-Z-]+\/[a-zA-Z-]+\/pull\/\d+/;
 
+function mapfeature(history: ChannelsHistoryResponse): Promise<Array<string>> {
+    return new Promise((resolve, reject) => {
+        try {
+            const historyMap: Array<string> = [];
+            if (history.messages.length > 0) {
+                for (let key of history.messages as Message[]) {
+                    if (key.bot_id) {
+                        // find the url
+                        let text = key.text;
+                        let url = text.match(regex)![0];
+                        historyMap.push(url);
+                    }
+                }
+            }
+            resolve(historyMap);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
 (async () => {
     const port = 3000;
     await app.start(process.env.PORT || port);
-
     console.log(`Slack Bolt is running on port ${port}!`);
     
-    const test_date = new Date('2023-01-12T00:00:00.000Z');
     const { id, name } = await createChannel('pr-notification-channel');
     const channelMembers = await getChannelMembers();
     // { id, name, is_owner, is_primary_owner, is_bot }
@@ -44,22 +61,19 @@ const REPO_GROUPINGS_API = 'uh-groupings-api';
     utc.setUTCHours(0,0,0,0);
     let timestamp = utc.getTime() / 1000;
 
-    // const current_date = await retrieveDate();
     while (true) {
-        const data = await listenForPullRequest(test_date);
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        const data = await listenForPullRequest(date);
         let message = '';
-        
-        // // send the messages that aren't in the history
-        // let history = await getChannelHistory(id!, timestamp.toString());
-        // if (history && history.length > 0) {
-        //     for (let historyKey in history.messages) {
-        //         const { text, bot_id } = historyKey;
-        //         console.log(text, bot_id);
-        //     }
-        // }
+        let history: ChannelsHistoryResponse = await getChannelHistory(id!, timestamp.toString());
+        let hmap = await mapfeature(history);
+        console.log(`Current hmap is: `, hmap);
         for (const pull_request of data) {
             message = `Merged ${pull_request.html_url} to ${pull_request.number} *${pull_request.head.repo.name} ${pull_request.base.ref}* branch. Please update your branches whenever you are ready for the new changes.`;
-            await sendMessage(name!, message);
+            if (!hmap.includes(pull_request.html_url)) {
+                await sendMessage(name!, message);
+            }
         }
     }
 })();
