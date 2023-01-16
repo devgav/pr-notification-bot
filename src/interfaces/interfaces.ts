@@ -1,13 +1,3 @@
-export interface PRData {
-    title: string,
-    author_name: string,
-    merged_date_time: string | null,
-    project_version: string,
-    url: string,
-    repo_name: string,
-    pull_number: number,
-}
-
 export interface ChannelMembers {
     id: string | undefined,
     name: string | undefined,
@@ -19,4 +9,11 @@ export interface ChannelMembers {
 export interface Channel {
     id: string | undefined,
     name: string | undefined,
+}
+
+export interface ChannelHistory {
+    bot_id: string | undefined,
+    type: string | undefined,
+    text: string | undefined,
+    user: string | undefined,
 }

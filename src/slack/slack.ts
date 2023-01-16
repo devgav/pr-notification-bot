@@ -33,6 +33,18 @@ export function createChannel(name: string): Promise<Channel> {
     });
 }
 
+// retrieve history to a certain date
+export function getChannelHistory(channelId: string, oldest: string) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const conversationHistory = await client.conversations.history({ channel: channelId, oldest, include_all_metadata: false });
+            resolve(conversationHistory);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
 // retrieve a list of members from a slack channel 
 export function getChannelMembers(): Promise<Array<ChannelMembers>> {
     return new Promise(async (resolve, reject) => {

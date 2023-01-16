@@ -20,7 +20,8 @@ const octokit: Octokit = new Octokit({
  */
 function filterByTime(pr: any, date: Date): boolean {
     const d = new Date(pr.merged_at);
-    return d.getTime() >= date.getTime();
+    d.setUTCHours(0, 0, 0, 0);
+    return d.getTime() === date.getTime();
 }
 
 /**
